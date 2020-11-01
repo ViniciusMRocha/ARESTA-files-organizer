@@ -7,3 +7,6 @@ for item in list[1:len(list)]:
         new_list = []
     else:
         new_list.append(item)
+
+path = '../out/temp/flag.pdf'
+print(path[:-4])
