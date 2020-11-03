@@ -1,3 +1,4 @@
+from PIL import Image
 from typing import Counter
 from PyPDF2 import PdfFileReader
 from PyPDF2 import PdfFileReader, PdfFileWriter, PdfFileMerger
@@ -10,6 +11,23 @@ import json
 import numpy as np
 import glob
 import time
+import imagehash
+
+
+def compare_images_hash(flag_img_path, page_img_path):
+    # hash0 = imagehash.average_hash(Image.open('../data/Flag-Page.jpg'))
+    # hash1 = imagehash.average_hash(Image.open('../data/Flag-Page2.jpg'))
+    hash0 = imagehash.average_hash(Image.open(flag_img_path))
+    hash1 = imagehash.average_hash(Image.open(page_img_path))
+
+    cutoff = 5
+
+    if hash0 - hash1 < cutoff:
+        # print('images are similar')
+        return True
+    else:
+        # print('images are not similar')
+        return False
 
 
 def convert_single_page(input_pdf, page, path):
@@ -25,7 +43,7 @@ def convert_single_page(input_pdf, page, path):
     images = convert_from_path(path)
 
     # Saves the image so it can be compared
-    images[0].save('{}.jpeg'.format(path[:-4]))
+    images[0].save('{}.jpg'.format(path[:-4]))
 
 
 def compare_images(flag_img_path, compared_img_path):
@@ -66,20 +84,21 @@ def app(file_prefix, pdf_path, counter=1, order='asc', map=None):
     for page in range(input_length):
         # Flag is the first file
         flag_path = '{}/flag.pdf'.format(out_temp_path)
-        flag_img_path = '{}/flag.jpeg'.format(out_temp_path)
+        flag_img_path = '{}/flag.jpg'.format(out_temp_path)
 
         if page == 0:
             convert_single_page(input_pdf, page, flag_path)
         # Page is not a cover or a flag
         else:
             page_pdf_path = '{}/page-{}.pdf'.format(out_temp_path, page)
-            page_img_path = '{}/page-{}.jpeg'.format(out_temp_path, page)
+            page_img_path = '{}/page-{}.jpg'.format(out_temp_path, page)
 
             # Convert each page to image
             convert_single_page(input_pdf, page, page_pdf_path)
 
             # Compares the image to the flag image
-            compare_result = compare_images(flag_img_path, page_img_path)
+            # compare_result = compare_images(flag_img_path, page_img_path)
+            compare_result = compare_images_hash(flag_img_path, page_img_path)
 
             # Prints as reads the file
             print('Page {} is {}'.format(page, compare_result))  # * Logic Check
@@ -103,11 +122,11 @@ def app(file_prefix, pdf_path, counter=1, order='asc', map=None):
 
             # Remove Page Temp Fies
             os.remove('{}/page-{}.pdf'.format(out_temp_path, page))
-            os.remove('{}/page-{}.jpeg'.format(out_temp_path, page))
+            os.remove('{}/page-{}.jpg'.format(out_temp_path, page))
 
     # Remove Flag File
     os.remove('{}/flag.pdf'.format(out_temp_path))
-    os.remove('{}/flag.jpeg'.format(out_temp_path))
+    os.remove('{}/flag.jpg'.format(out_temp_path))
 
     # Rename files if map is present
     if map is not None:
@@ -157,4 +176,4 @@ if __name__ == "__main__":
     app(file_prefix, pdf_path, counter)
 
 
-# TODO: Add cover page functionality
+# TODO: Add TKinter functionality
