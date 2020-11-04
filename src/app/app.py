@@ -2,16 +2,17 @@ from PIL import Image
 from typing import Counter
 from PyPDF2 import PdfFileReader
 from PyPDF2 import PdfFileReader, PdfFileWriter, PdfFileMerger
-from pdf2image import convert_from_path, convert_from_bytes
-from pdf2image.exceptions import (
-    PDFInfoNotInstalledError, PDFPageCountError, PDFSyntaxError)
+from pdf2image import convert_from_path
 import os
 import cv2
 import json
-import numpy as np
+# import numpy as np
 import glob
 import time
 import imagehash
+
+# pip install ImageHash
+# pip install PyPDF2
 
 
 def compare_images_hash(flag_img_path, page_img_path):
