@@ -1,42 +1,15 @@
-# import json
+import csv
+import json
 
-# list = [1, 0, 0, 0, 1, 0, 1]
+csv_file_path = '../data/sample_map.csv'
+json_file_path = '{}.json'.format(csv_file_path[:-4])
 
-# new_list = []
-# for item in list[1:len(list)]:
-#     if item == 1:
-#         print(new_list)
-#         new_list = []
-#     else:
-#         new_list.append(item)
+data = {}
+with open(csv_file_path) as csv_file:
+    csv_reader = csv.DictReader(csv_file)
+    for rows in csv_reader:
+        id = rows['ID']
+        data[id] = rows['Name']
 
-# path = '../out/temp/flag.pdf'
-# print(path[:-4])
-
-
-# # Python program to illustrate
-# # enumerate function in loops
-# l1 = ["eat", "sleep", "repeat"]
-
-# # changing index and printing separately
-# for count, file in enumerate(l1, 1):
-#     print(count, file)
-
-
-# def load_map(path_to_map):
-#     with open(path_to_map) as json_file:
-#         json_content = json.load(json_file)
-#         return json_content
-
-
-# map = load_map('../data/map.json')
-
-# for i in range(1, 5):
-#     # value =
-#     print(map["{}".format(i)])
-
-# C: \git\ARESTA - files - organizer\src\out\temp\flag.pdf -
-
-from pdf2image import convert_from_path
-
-convert_from_path('../out/temp/flag.pdf')
+with open(json_file_path, 'w') as json_file:
+    json_file.write(json.dumps(data, indent=4))
