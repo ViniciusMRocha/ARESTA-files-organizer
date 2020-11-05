@@ -2,28 +2,24 @@ from tkinter import *
 from tkinter.ttk import *
 from tkinter import filedialog
 import app
+import config  # TODO: Set up Config file
 
-global global_filename
+global global_file_path
+global global_output_path
 global global_json_map
+global_json_map = None
 
 
 def run():
-    # order_combo_val =
-    print('New Name:', new_name_ent.get())
-    print('File Path:', global_filename)
-    print('Counter:', counter_ent.get())
-    print('Order Combo:', order_combo.get())
-    print('Map:', global_json_map)
-    print('Type Map:', type(global_json_map))
-
-    new_name = new_name_ent.get()
-    filename = global_filename
-    counter = counter_ent.get()
-    order = order_combo.get()
-    map = global_json_map
-
     # Set New Name
-    new_name = new_name.strip()
+    new_name = new_name_ent.get().strip()
+
+    file_path = global_file_path
+
+    output_folder = global_output_path
+
+    # Set Counter
+    counter = int(counter_ent.get())
 
     # Set Order
     order = None
@@ -32,69 +28,66 @@ def run():
     elif order_combo.get() == 'Descending':
         order = 'desc'
 
-    # Set Counter
-    counter = int(counter)
-
     # Set Map
+    global global_json_map
+    map = global_json_map
     if map == '':
         map = None
 
-    app.app(new_name, filename, counter, order, map)
+    app.app(new_name, file_path, output_folder, counter, order, map)
 
 
 def get_file_path():
-    filename = filedialog.askopenfilename(initialdir="../data/",
-                                          title="Select a File",
-                                          filetypes=(("PDF", "*.pdf"), ("all files", "*.*")))
-    file_path_entry = Text(root, state='normal', width=50, height=1)
-    file_path_entry.insert('end', filename)
-    file_path_entry.configure(state='disable')
-    file_path_entry.grid(column=1, row=1)
+    file_path = filedialog.askopenfilename(initialdir="../data/",
+                                           title="Select a File",
+                                           filetypes=(("PDF", "*.pdf"), ("all files", "*.*")))
+    file_path_ent = Text(root, state='normal', width=50, height=1)
+    file_path_ent.insert('end', file_path)
+    file_path_ent.configure(state='disable')
+    file_path_ent.grid(column=1, row=1)
 
-    global global_filename
-    global_filename = filename
-    return filename
+    global global_file_path
+    global_file_path = file_path
+    return file_path
 
 
 def get_json_map_path():
     json_map = filedialog.askopenfilename(initialdir="../data/",
                                           title="Select a File",
-                                          filetypes=(("JSON", "*.json"), ("all files", "*.*")))
-    map_path_entry = Text(root, state='normal', width=50, height=1)
-    map_path_entry.insert('end', json_map)
-    map_path_entry.configure(state='disable')
-    map_path_entry.grid(column=1, row=4)
+                                          filetypes=(("CSV", "*.csv"), ("all files", "*.*")))
+    map_path_ent = Text(root, state='normal', width=50, height=1)
+    map_path_ent.insert('end', json_map)
+    map_path_ent.configure(state='disable')
+    map_path_ent.grid(column=1, row=4)
 
     global global_json_map
     global_json_map = json_map
     return json_map
+
+
+def get_output_path():
+    output_path = filedialog.askdirectory(initialdir="../../",
+                                          title="Select a File")
+    output_path_ent = Text(root, state='normal', width=50, height=1)
+    output_path_ent.insert('end', output_path)
+    output_path_ent.configure(state='disable')
+    output_path_ent.grid(column=1, row=5)
+
+    global global_output_path
+    global_output_path = output_path
+    return output_path
 
 
 def clear_map():
     json_map = ''
-    map_path_entry = Text(root, state='normal', width=50, height=1)
-    map_path_entry.insert('end', json_map)
-    map_path_entry.configure(state='disable')
-    map_path_entry.grid(column=1, row=4)
+    map_path_ent = Text(root, state='normal', width=50, height=1)
+    map_path_ent.insert('end', json_map)
+    map_path_ent.configure(state='disable')
+    map_path_ent.grid(column=1, row=4)
 
     global global_json_map
     global_json_map = json_map
     return json_map
-
-
-def convert_csv_to_json(csv_file_path):
-    csv_file_path = '../data/csv_input.csv'
-    json_file_path = '{}.json'.format(csv_file_path[:-4])
-
-    data = {}
-    with open(csv_file_path) as csv_file:
-        csv_reader = csv.DictReader(csv_file)
-        for rows in csv_reader:
-            id = rows['ID']
-            data[id] = rows['Name']
-
-    with open(json_file_path, 'w') as json_file:
-        json_file.write(json.dumps(data, indent=4))
 
 
 root = Tk()
@@ -108,9 +101,10 @@ new_name_lbl.grid(column=0, row=0, sticky=W)
 new_name_ent.grid(column=1, row=0)
 
 # File Path ----------------------------
-file_path_entry = Entry(root)
-file_path_entry.config(width=50)
-file_path_btn = Button(root, text="File Path", command=lambda: get_file_path())
+file_path_ent = Entry(root)
+file_path_ent.config(width=50)
+file_path_btn = Button(root, text="File Path",
+                       command=lambda: get_file_path())
 file_path_btn.grid(column=0, row=1)
 
 # Counter ----------------------------
@@ -128,8 +122,8 @@ order_lbl.grid(column=0, row=3, sticky=W)
 order_combo.grid(column=1, row=3)
 
 # Map ----------------------------
-map_entry = Entry(root)
-map_entry.config(width=50)
+map_ent = Entry(root)
+map_ent.config(width=50)
 map_btn = Button(root, text="Get Map",
                  command=lambda: get_json_map_path())
 clear_map_btn = Button(root, text="Clear Map",
@@ -138,18 +132,17 @@ clear_map_btn = Button(root, text="Clear Map",
 map_btn.grid(column=0, row=4)
 clear_map_btn.grid(column=0, row=5, sticky=W)
 
-# # Map ----------------------------
-# TODO: Create Json form CSV GUI option
-# create_map_entry = Entry(root)
-# create_map_entry.config(width=50)
-# create_map_btn = Button(root, text="Create Map",
-#                         command=lambda: get_json_create_map_path())
+# Output Folder ----------------------------
+output_folder_ent = Entry(root)
+output_folder_ent.config(width=50)
+output_folder_btn = Button(root, text="Get Output",
+                           command=lambda: get_output_path())
 
-# create_map_btn.grid(column=0, row=4)
+output_folder_btn.grid(column=0, row=5)
 
 # Run Button ----------------------------
 run_btn = Button(root, text="Run", command=lambda: run())
-run_btn.grid(column=1, row=5)
+run_btn.grid(column=1, row=6)
 
 # End frame
 root.mainloop()

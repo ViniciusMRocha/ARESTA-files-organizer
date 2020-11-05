@@ -4,19 +4,17 @@ from PyPDF2 import PdfFileReader
 from PyPDF2 import PdfFileReader, PdfFileWriter, PdfFileMerger
 from pdf2image import convert_from_path
 import os
+import csv
 import cv2
 import json
-# import numpy as np
 import glob
 import time
+import datetime
 import imagehash
-import csv
-# pip install ImageHash
-# pip install PyPDF2
 
 
 def convert_csv_to_json(csv_file_path):
-    csv_file_path = '../data/csv_input.csv'
+    # csv_file_path = '../data/csv_input.csv'
     json_file_path = '{}.json'.format(csv_file_path[:-4])
 
     data = {}
@@ -28,6 +26,8 @@ def convert_csv_to_json(csv_file_path):
 
     with open(json_file_path, 'w') as json_file:
         json_file.write(json.dumps(data, indent=4))
+
+    return json_file_path
 
 
 def compare_images_hash(flag_img_path, page_img_path):
@@ -89,12 +89,17 @@ def load_map(path_to_map):
         return json_content
 
 
-def app(file_prefix, pdf_path, counter=1, order='asc', map=None):
+def app(file_prefix, pdf_path, output_folder, counter=1, order='asc', map=None):
     startTime = time.time()
-    out_temp_path = '../out/temp'
+    out_temp_path = '../temp'
     input_pdf = PdfFileReader(str(pdf_path))
     input_length = input_pdf.getNumPages()
     pdf_merger = PdfFileMerger()
+    timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+
+    print('OUTPUT:', output_folder)
+    output_folder = '{}/{}-{}'.format(output_folder, file_prefix, timestamp)
+    os.mkdir(output_folder)
 
     # Loop page by page
     for page in range(input_length):
@@ -122,7 +127,7 @@ def app(file_prefix, pdf_path, counter=1, order='asc', map=None):
             # True for when the page matches the flag, false otherwise
             if compare_result:
                 # Create new pdf with to save the pages that are not equal to the flag
-                with open('../out/{}-{}.pdf'.format(file_prefix, counter), "wb") as output_file:
+                with open('{}/{}-{}.pdf'.format(output_folder, file_prefix, counter), "wb") as output_file:
                     pdf_merger.write(output_file)
                 # Update the output counter
                 if order == 'asc':
@@ -146,17 +151,18 @@ def app(file_prefix, pdf_path, counter=1, order='asc', map=None):
 
     # Rename files if map is present
     if map is not None:
+        map = convert_csv_to_json(map)
         # Load the map
         map_dict = load_map(map)
         # Get the path to the files to be renamed
-        file_list = glob.glob('../out/{}*.pdf'.format(file_prefix))
+        file_list = glob.glob('{}/{}*.pdf'.format(output_folder, file_prefix))
         # Iterate over each file
         for count, file_path in enumerate(file_list, 1):
             # Get the value for each key
             map_value = map_dict["{}".format(count)]
             # Set up new variable name
-            new_file_name = '../out/{}-{}-{}.pdf'.format(
-                file_prefix, count, map_value)
+            new_file_name = '{}/{}-{}-{}.pdf'.format(
+                output_folder, file_prefix, count, map_value)
             # Rename the original files
             os.rename(file_path, new_file_name)
 
@@ -169,27 +175,28 @@ if __name__ == "__main__":
     # Running APP - Test Large File
     file_prefix = 'Green_Card'
     pdf_path = '../data/Application_Test.pdf'  # 400+ pages
-    # app(file_prefix, pdf_path)
+    output_folder = '/Users/viniciusrocha/development/ARESTA-files-organizer/out'
+    # app(file_prefix, pdf_path, output_folder)
 
     # Running APP - Testing Map
     file_prefix = 'Test_File'
-    pdf_path = '../data/test-input.pdf'
-    map = '../data/map.json'
-    app(file_prefix, pdf_path, map=map)
+    pdf_path = '../data/sample.pdf'
+    output_folder = '/Users/viniciusrocha/development/ARESTA-files-organizer/out'
+    map = '../data/sample_map.csv'
+    app(file_prefix, pdf_path, output_folder, map=map)
 
     # Running APP - Test Order desc
     file_prefix = 'Test_Order_Desc'
-    pdf_path = '../data/test-input.pdf'
+    pdf_path = '../data/sample.pdf'
     counter = 2020
     order = 'desc'
-    map = '../data/map.json'
-    app(file_prefix, pdf_path, counter, order)
+    map = '../data/sample_map.csv'
+    output_folder = '/Users/viniciusrocha/development/ARESTA-files-organizer/out'
+    app(file_prefix, pdf_path, output_folder, counter, order)
 
     # Running APP - Test Order Asc
     file_prefix = 'Test_Order_Asc'
-    pdf_path = '../data/test-input.pdf'
+    pdf_path = '../data/sample.pdf'
     counter = 2000
-    app(file_prefix, pdf_path, counter)
-
-
-# TODO: Add TKinter functionality
+    output_folder = '/Users/viniciusrocha/development/ARESTA-files-organizer/out'
+    app(file_prefix, pdf_path, output_folder, counter)
