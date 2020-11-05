@@ -91,7 +91,7 @@ def load_map(path_to_map):
 
 def app(file_prefix, pdf_path, output_folder, counter=1, order='asc', map=None):
     startTime = time.time()
-    out_temp_path = '../temp'
+    out_temp_path = 'temp'
     input_pdf = PdfFileReader(str(pdf_path))
     input_length = input_pdf.getNumPages()
     pdf_merger = PdfFileMerger()
